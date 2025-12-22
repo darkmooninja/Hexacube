@@ -87,6 +87,8 @@ def take_photo():
             print("picture done")
             picam2.stop()
             #PUSH PHOTO TO GITHUB
+            time.sleep(1)  # debounce
+            break
         
         #PAUSE
 
