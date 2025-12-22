@@ -73,10 +73,7 @@ def take_photo():
         accel_x, accel_y, accel_z = accel_gyro.acceleration
         magnitude = (accel_x**2 + accel_y**2 + accel_z**2) ** 0.5
         #CHECKS IF READINGS ARE ABOVE THRESHOLD
-
-
-        
-	    if magnitude > THRESHOLD:
+        if magnitude > THRESHOLD:
             print("SHAKE")
 
             #PAUSE
@@ -84,7 +81,7 @@ def take_photo():
             photo_name = img_gen(name)
 
             picam2.start()
-		    image = picam2.capture_image("main")
+            image = picam2.capture_image("main")
             image.save(photo_name)
             git_push()
             print("picture done")
