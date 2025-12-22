@@ -23,8 +23,8 @@ from picamera2 import Picamera2
 
 #VARIABLES
 THRESHOLD = 0      #Any desired value from the accelerometer
-REPO_PATH = ""     #Your github repo path: ex. /home/pi/FlatSatChallenge
-FOLDER_PATH = ""   #Your image folder path in your GitHub repo: ex. /Images
+REPO_PATH = "/home/pi/Hexacube"     #Your github repo path: ex. /home/pi/FlatSatChallenge
+FOLDER_PATH = "/Images"   #Your image folder path in your GitHub repo: ex. /Images
 
 #imu and camera initialization
 i2c = board.I2C()
@@ -70,12 +70,22 @@ def take_photo():
     Replace psuedocode with your own code.
     """
     while True:
-        accelx, accely, accelz = accel_gyro.acceleration
-
+        accel_x, accel_y, accel_z = accel_gyro.acceleration
+        magnitude = (accel_x**2 + accel_y**2 + accel_z**2) ** 0.5
         #CHECKS IF READINGS ARE ABOVE THRESHOLD
+	if magnitude > THRESHOLD:
+            print("SHAKE")
+
             #PAUSE
-            #name = ""     #First Name, Last Initial  ex. MasonM
-            #TAKE PHOTO
+            name = "Test"
+            photo_name = img_gen(name)
+
+            picam2.start()
+		    image = picam2.capture_image("main")
+            image.save(photo_name)
+            git_push()
+            print("picture done")
+            picam2.stop()
             #PUSH PHOTO TO GITHUB
         
         #PAUSE
