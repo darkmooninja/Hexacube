@@ -16,15 +16,21 @@ You will need to complete the take_photo() function and configure the VARIABLES 
 #import libraries
 import time
 import board
+import math
+import numpy as np
 from adafruit_lsm6ds.lsm6dsox import LSM6DSOX as LSM6DS
 from adafruit_lis3mdl import LIS3MDL
 from git import Repo
 from picamera2 import Picamera2
 
 #VARIABLES
-THRESHOLD = 0      #Any desired value from the accelerometer
+THRESHOLD = 15      #Any desired value from the accelerometer
 REPO_PATH = "/home/pi/Hexacube"     #Your github repo path: ex. /home/pi/FlatSatChallenge
 FOLDER_PATH = "/Images"   #Your image folder path in your GitHub repo: ex. /Images
+Brightness_threshold = 80
+Shadow_threshold = 20
+Sun_Degree = 30
+PixelRatio = 0.001
 
 #imu and camera initialization
 i2c = board.I2C()
@@ -83,18 +89,88 @@ def take_photo():
             picam2.start()
             image = picam2.capture_image("main")
             image.save(photo_name)
+
+            ShadowMap(image)
+            
             git_push()
             print("picture done")
             picam2.stop()
             #PUSH PHOTO TO GITHUB
+
+            
             time.sleep(1)  # debounce
             break
         
         #PAUSE
+def test_take_photo():
+    print("Test Mode: Click 'Space' then 'Enter' to take a photo")
+    while True:
+        key = input()
+        if key == " ":
+            print("SPACE")
+            name = "Test"
+            photo_name = img_gen(name)
+
+            picam2.start()
+            time.sleep(1)
+            image = picam2.capture_image("main")
+            image.save(photo_name)
+
+            ShadowMap(image)
+            
+            git_push()
+            print("picture done")
+            picam2.stop()
+            #PUSH PHOTO TO GITHUB
+
+            
+            time.sleep(1)  #debounce
+        elif key.lower() == "q":
+            print("Exiting test mode")
+            break
+
+
+def ShadowMap(image):
+    ImgMap = np.array(image)
+    if len(ImgMap.shape) == 3:
+        gray = 0.299 * ImgMap[:, :, 0] + 0.587 * ImgMap[:, :, 1] + 0.114 * ImgMap[:, :, 2]
+    else:
+        gray = ImgMap
+    
+    mask = gray < Brightness_threshold
+
+    Shadow_Width = 0
+
+    for row_idx in range(mask.shape[0]):
+        row = mask[row_idx]
+        shadow_array = np.where(row)[0]
+
+        if len(shadow_array) < Shadow_threshold:
+            continue
+
+        start = shadow_array[0]
+        end = shadow_array[-1]
+        width = end - start + 1
+
+        if width > Shadow_Width:
+            Shadow_Width = width
+
+    if Shadow_Width == 0:
+        print("No clear shadow detected.")
+        return
+    
+    Shadow_length = Shadow_Width * PixelRatio
+    Depth = Shadow_length * math.tan(math.radians(Sun_Degree))
+
+    print("Shadow width:", Shadow_Width, "pixels")
+    print("Shadow length:", Shadow_length, "meters")
+    print("Estimated crater depth:", Depth, "meters")
+
 
 
 def main():
-    take_photo()
+    #take_photo()           #Comment for testing with movement
+    test_take_photo()       #Comment for Testing with Keyboard Input
 
 
 if __name__ == '__main__':
