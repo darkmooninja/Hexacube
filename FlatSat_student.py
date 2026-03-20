@@ -188,6 +188,7 @@ def ShadowMap(image):
 
     marked_name = f"{REPO_PATH}/{FOLDER_PATH}/shadow_marked.jpg"
     marked_image = Image.fromarray(display_img)
+    marked_image = marked_image.convert("RGB")
     marked_image.save(marked_name)
     print("Marked image saved as:", marked_name)    
 
