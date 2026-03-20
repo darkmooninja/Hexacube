@@ -103,7 +103,34 @@ def take_photo():
             break
         
         #PAUSE
-        
+def test_take_photo():
+    print("Test Mode: Click 'Space' then 'Enter' to take a photo")
+    while True:
+        key = input()
+        if key == " ":
+            print("SPACE")
+            name = "Test"
+            photo_name = img_gen(name)
+
+            picam2.start()
+            time.sleep(1)
+            image = picam2.capture_image("main")
+            image.save(photo_name)
+
+            ShadowMap(image, photo_name)
+            
+            git_push()
+            print("picture done")
+            picam2.stop()
+            #PUSH PHOTO TO GITHUB
+
+            
+            time.sleep(1)  #debounce
+        elif key.lower() == "q":
+            print("Exiting test mode")
+            break
+
+
 def ShadowMap(image, photo_name):
     ImgMap = np.array(image)
 
