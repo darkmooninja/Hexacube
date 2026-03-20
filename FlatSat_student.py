@@ -117,7 +117,7 @@ def test_take_photo():
             image = picam2.capture_image("main")
             image.save(photo_name)
 
-            ShadowMap(image)
+            ShadowMap(image, photo_name)
             
             git_push()
             print("picture done")
