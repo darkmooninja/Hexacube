@@ -103,34 +103,7 @@ def take_photo():
             break
         
         #PAUSE
-def test_take_photo():
-    print("Test Mode: Click 'Space' then 'Enter' to take a photo")
-    while True:
-        key = input()
-        if key == " ":
-            print("SPACE")
-            name = "Test"
-            photo_name = img_gen(name)
-
-            picam2.start()
-            time.sleep(1)
-            image = picam2.capture_image("main")
-            image.save(photo_name)
-
-            ShadowMap(image, photo_name)
-            
-            git_push()
-            print("picture done")
-            picam2.stop()
-            #PUSH PHOTO TO GITHUB
-
-            
-            time.sleep(1)  #debounce
-        elif key.lower() == "q":
-            print("Exiting test mode")
-            break
-
-
+        
 def ShadowMap(image, photo_name):
     ImgMap = np.array(image)
 
@@ -141,13 +114,21 @@ def ShadowMap(image, photo_name):
 
     mask = gray < Brightness_threshold
 
+    rows, cols = mask.shape
+
+    # Ignore dark borders around the image
+    row_min = rows // 5
+    row_max = 4 * rows // 5
+    col_min = cols // 5
+    col_max = 4 * cols // 5
+
     Shadow_Width = 0
     best_row = -1
     best_start = -1
     best_end = -1
 
-    for row_idx in range(mask.shape[0]):
-        row = mask[row_idx]
+    for row_idx in range(row_min, row_max):
+        row = mask[row_idx, col_min:col_max]
 
         current_start = -1
 
@@ -163,8 +144,8 @@ def ShadowMap(image, photo_name):
                     if width >= Shadow_threshold and width > Shadow_Width:
                         Shadow_Width = width
                         best_row = row_idx
-                        best_start = current_start
-                        best_end = current_end
+                        best_start = current_start + col_min
+                        best_end = current_end + col_min
 
                     current_start = -1
 
@@ -175,8 +156,8 @@ def ShadowMap(image, photo_name):
             if width >= Shadow_threshold and width > Shadow_Width:
                 Shadow_Width = width
                 best_row = row_idx
-                best_start = current_start
-                best_end = current_end
+                best_start = current_start + col_min
+                best_end = current_end + col_min
 
     if Shadow_Width == 0:
         print("No clear shadow detected.")
@@ -205,9 +186,7 @@ def ShadowMap(image, photo_name):
         display_img[best_row, best_start:best_end + 1] = [255, 0, 0, 255]
 
     marked_name = photo_name.replace(".jpg", "_shadow_marked.jpg")
-
-    marked_image = Image.fromarray(display_img)
-    marked_image = marked_image.convert("RGB")
+    marked_image = Image.fromarray(display_img).convert("RGB")
     marked_image.save(marked_name)
 
     print("Marked image saved as:", marked_name)
