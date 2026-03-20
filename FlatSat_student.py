@@ -140,6 +140,10 @@ def ShadowMap(image, photo_name):
         gray = ImgMap
 
     mask = gray < Brightness_threshold
+    binary_img = np.where(mask, 0, 255).astype(np.uint8)
+    binary_name = photo_name.replace(".jpg", "_binary.jpg")
+    Image.fromarray(binary_img).save(binary_name)
+    print("Binary image saved as:", binary_name)
 
     rows, cols = mask.shape
 
