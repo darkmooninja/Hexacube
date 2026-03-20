@@ -18,6 +18,7 @@ import time
 import board
 import math
 import numpy as np
+from PIL import Image
 from adafruit_lsm6ds.lsm6dsox import LSM6DSOX as LSM6DS
 from adafruit_lis3mdl import LIS3MDL
 from git import Repo
@@ -141,6 +142,10 @@ def ShadowMap(image):
 
     Shadow_Width = 0
 
+    best_row = -1
+    best_start = -1
+    best_end = -1
+
     for row_idx in range(mask.shape[0]):
         row = mask[row_idx]
         shadow_array = np.where(row)[0]
@@ -151,6 +156,12 @@ def ShadowMap(image):
         start = shadow_array[0]
         end = shadow_array[-1]
         width = end - start + 1
+
+        if width > Shadow_Width:
+            Shadow_Width = width
+            best_row = row_idx
+            best_start = start
+            best_end = end        
 
         if width > Shadow_Width:
             Shadow_Width = width
@@ -165,6 +176,20 @@ def ShadowMap(image):
     print("Shadow width:", Shadow_Width, "pixels")
     print("Shadow length:", Shadow_length, "meters")
     print("Estimated crater depth:", Depth, "meters")
+
+    if len(ImgMap.shape) == 2:
+        display_img = np.stack([ImgMap] * 3, axis=-1)
+    else:
+        display_img = ImgMap.copy()
+
+    display_img = display_img.astype(np.uint8)
+    
+    display_img[best_row, best_start:best_end + 1] = [255, 0, 0]
+
+    marked_name = f"{REPO_PATH}/{FOLDER_PATH}/shadow_marked.jpg"
+    marked_image = Image.fromarray(display_img)
+    marked_image.save(marked_name)
+    print("Marked image saved as:", marked_name)    
 
 
 
