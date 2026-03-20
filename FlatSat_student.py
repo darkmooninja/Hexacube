@@ -184,7 +184,7 @@ def ShadowMap(image):
 
     display_img = display_img.astype(np.uint8)
     
-    display_img[best_row, best_start:best_end + 1] = [255, 0, 0]
+    display_img[best_row, best_start:best_end + 1] = [255, 0, 0, 255]
 
     marked_name = f"{REPO_PATH}/{FOLDER_PATH}/shadow_marked.jpg"
     marked_image = Image.fromarray(display_img)
