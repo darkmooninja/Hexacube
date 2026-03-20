@@ -28,7 +28,7 @@ from picamera2 import Picamera2
 THRESHOLD = 15      #Any desired value from the accelerometer
 REPO_PATH = "/home/pi/Hexacube"     #Your github repo path: ex. /home/pi/FlatSatChallenge
 FOLDER_PATH = "/Images"   #Your image folder path in your GitHub repo: ex. /Images
-Brightness_threshold = 80
+Brightness_threshold = 150
 Shadow_threshold = 20
 Sun_Degree = 30
 PixelRatio = 0.001
