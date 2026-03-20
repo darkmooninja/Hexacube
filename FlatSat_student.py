@@ -31,7 +31,7 @@ FOLDER_PATH = "/Images"   #Your image folder path in your GitHub repo: ex. /Imag
 Brightness_threshold = 100
 Shadow_threshold = 20
 Sun_Degree = 30
-PixelRatio = 0.001
+PixelRatio = 0.000602 #0.10 / 166
 
 #imu and camera initialization
 i2c = board.I2C()
