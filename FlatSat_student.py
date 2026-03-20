@@ -131,51 +131,66 @@ def test_take_photo():
             break
 
 
-def ShadowMap(image):
+def ShadowMap(image, photo_name):
     ImgMap = np.array(image)
+
     if len(ImgMap.shape) == 3:
         gray = 0.299 * ImgMap[:, :, 0] + 0.587 * ImgMap[:, :, 1] + 0.114 * ImgMap[:, :, 2]
     else:
         gray = ImgMap
-    
+
     mask = gray < Brightness_threshold
 
     Shadow_Width = 0
-
     best_row = -1
     best_start = -1
     best_end = -1
 
     for row_idx in range(mask.shape[0]):
         row = mask[row_idx]
-        shadow_array = np.where(row)[0]
 
-        if len(shadow_array) < Shadow_threshold:
-            continue
+        current_start = -1
 
-        start = shadow_array[0]
-        end = shadow_array[-1]
-        width = end - start + 1
+        for col_idx in range(len(row)):
+            if row[col_idx]:
+                if current_start == -1:
+                    current_start = col_idx
+            else:
+                if current_start != -1:
+                    current_end = col_idx - 1
+                    width = current_end - current_start + 1
 
-        if width > Shadow_Width:
-            Shadow_Width = width
-            best_row = row_idx
-            best_start = start
-            best_end = end        
+                    if width >= Shadow_threshold and width > Shadow_Width:
+                        Shadow_Width = width
+                        best_row = row_idx
+                        best_start = current_start
+                        best_end = current_end
 
-        if width > Shadow_Width:
-            Shadow_Width = width
+                    current_start = -1
+
+        if current_start != -1:
+            current_end = len(row) - 1
+            width = current_end - current_start + 1
+
+            if width >= Shadow_threshold and width > Shadow_Width:
+                Shadow_Width = width
+                best_row = row_idx
+                best_start = current_start
+                best_end = current_end
 
     if Shadow_Width == 0:
         print("No clear shadow detected.")
         return
-    
+
     Shadow_length = Shadow_Width * PixelRatio
     Depth = Shadow_length * math.tan(math.radians(Sun_Degree))
 
     print("Shadow width:", Shadow_Width, "pixels")
     print("Shadow length:", Shadow_length, "meters")
     print("Estimated crater depth:", Depth, "meters")
+    print("Row used for calculation:", best_row)
+    print("Shadow starts at column:", best_start)
+    print("Shadow ends at column:", best_end)
 
     if len(ImgMap.shape) == 2:
         display_img = np.stack([ImgMap] * 3, axis=-1)
@@ -183,15 +198,19 @@ def ShadowMap(image):
         display_img = ImgMap.copy()
 
     display_img = display_img.astype(np.uint8)
-    
-    display_img[best_row, best_start:best_end + 1] = [255, 0, 0, 255]
 
-    marked_name = f"{REPO_PATH}/{FOLDER_PATH}/shadow_marked.jpg"
+    if display_img.shape[2] == 3:
+        display_img[best_row, best_start:best_end + 1] = [255, 0, 0]
+    elif display_img.shape[2] == 4:
+        display_img[best_row, best_start:best_end + 1] = [255, 0, 0, 255]
+
+    marked_name = photo_name.replace(".jpg", "_shadow_marked.jpg")
+
     marked_image = Image.fromarray(display_img)
     marked_image = marked_image.convert("RGB")
     marked_image.save(marked_name)
-    print("Marked image saved as:", marked_name)    
 
+    print("Marked image saved as:", marked_name)
 
 
 def main():
